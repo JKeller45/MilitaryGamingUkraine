@@ -10,7 +10,7 @@ def history_to_dict(belligerant: Belligerant, max_length=0, monte_carlo=False) -
     data: dict = {}
     if not monte_carlo:
         data = {
-            "Time": belligerant.history.time,
+            "Time": [i / 365.0 for i in belligerant.history.time],
             "GDP (Billions, PPP$)": belligerant.history.economic_capital,
             "Military Capability": belligerant.history.military_capability,
             "Civilian Industrial Capacity": belligerant.history.civilian_industrial_capacity,
@@ -24,7 +24,7 @@ def history_to_dict(belligerant: Belligerant, max_length=0, monte_carlo=False) -
         }
     else:
         data = {
-            "Time": [i for i in range(max_length)],
+            "Time": [i / 365.0 for i in range(max_length)],
             "GDP (Billions, PPP$)": (belligerant.history.economic_capital + [belligerant.history.economic_capital[-1]] * (max_length - len(belligerant.history.economic_capital)))[:max_length],
             "Military Capability": (belligerant.history.military_capability + [belligerant.history.military_capability[-1]] * (max_length - len(belligerant.history.military_capability)))[:max_length],
             "Civilian Industrial Capacity": (belligerant.history.civilian_industrial_capacity + [belligerant.history.civilian_industrial_capacity[-1]] * (max_length - len(belligerant.history.civilian_industrial_capacity)))[:max_length],
@@ -94,18 +94,22 @@ def plot_monte_carlo_line(belligerants: list[list[Belligerant]], variable: str, 
 def plot_monte_carlo_histograms(lengths: list, winners: list, reasons: list):
     sns.set_theme(style="darkgrid")
     fig, axs = plt.subplots(1, 3, figsize=(15, 8))
+
+    lengths = [length / 365.0 for length in lengths]
     
     df = pd.DataFrame({"Length of Conflict": lengths, "Winner": winners})
-    sns.histplot(df, bins=100, ax=axs[0], multiple="stack", x="Length of Conflict", hue="Winner")
+    hist1 = sns.histplot(df, bins=100, ax=axs[0], multiple="stack", x="Length of Conflict", hue="Winner")
+    hist1.set_xticks(range(0, 11))
     axs[0].set_title("Winner by Length of Conflict")
-    axs[0].set_xlabel("Length of Conflict")
+    axs[0].set_xlabel("Length of Conflict (Years)")
     axs[0].set_ylabel("Frequency")
 
     df = pd.DataFrame({"Length of Conflict": lengths, "Reason": reasons})
-    sns.histplot(df, bins=100, ax=axs[1], multiple="stack", x="Length of Conflict", hue="Reason")
-    axs[0].set_title("Victory Reason by Length of Conflict")
-    axs[0].set_xlabel("Length of Conflict")
-    axs[0].set_ylabel("Frequency")
+    hist2 = sns.histplot(df, bins=100, ax=axs[1], multiple="stack", x="Length of Conflict", hue="Reason")
+    hist2.set_xticks(range(0, 11))
+    axs[1].set_title("Victory Reason by Length of Conflict")
+    axs[1].set_xlabel("Length of Conflict (Years)")
+    axs[1].set_ylabel("Frequency")
 
     pruned_winners = [winner for winner in winners if winner != "None"]
     reasons = [reason for reason in reasons if reason != "None"]

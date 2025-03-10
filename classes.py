@@ -203,7 +203,6 @@ class Coefficients:
     military_industrial_investment_coefficient: float
     civilian_industrial_investment_coefficient: float
     military_consumption_cost_coefficient: float
-    absolute_attrition_coefficient: float
     military_demand_coefficient: float
     military_attrition_coefficient: float
     industrial_attrition_coefficient: float

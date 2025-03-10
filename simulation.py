@@ -5,7 +5,7 @@ from classes import Belligerant, Coefficients
 import data_analysis as da
 
 def sanctions_policy_russia(t: int) -> float:
-    return .14 * max(min(t / 4,90),0) / 90 + .01
+    return .14 * max(min(t / 4, 90),0) / 90 + .01
 
 def sanctions_policy_ukraine(t: int) -> float:
     return 0.0
@@ -172,7 +172,6 @@ if __name__ == "__main__":
         military_industrial_investment_coefficient=5e-1,
         civilian_industrial_investment_coefficient=1e-1,
         military_consumption_cost_coefficient=3e-4,
-        absolute_attrition_coefficient=8e-4,
         military_demand_coefficient=3.5,
         military_attrition_coefficient=5e-5,
         industrial_attrition_coefficient=4e-7,

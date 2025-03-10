@@ -16,7 +16,6 @@ def individual_simulation(timesteps: int):
             military_industrial_investment_coefficient=np.random.uniform(1e-1, 1e0),
             civilian_industrial_investment_coefficient=np.random.uniform(1e-2, 5e-1),
             military_consumption_cost_coefficient=np.random.uniform(1e-4, 1e-3),
-            absolute_attrition_coefficient=np.random.uniform(1e-4, 4e-3),
             military_demand_coefficient=np.random.uniform(1, 10),
             military_attrition_coefficient=np.random.uniform(1e-6, 5e-4),
             industrial_attrition_coefficient=np.random.uniform(8e-8, 1e-6),
