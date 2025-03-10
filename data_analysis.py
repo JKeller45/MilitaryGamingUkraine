@@ -121,7 +121,6 @@ def plot_monte_carlo_histograms(lengths: list, winners: list, reasons: list):
                       index=["Russian Federation", "Ukraine"]) 
     df.plot(kind="bar", stacked=True, ax=axs[2])
     plt.title("Victory Reason")
-    plt.xlabel("Reason")
     plt.ylabel("Frequency")
 
     plt.tight_layout()

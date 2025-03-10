@@ -19,7 +19,7 @@ def individual_simulation(timesteps: int):
             absolute_attrition_coefficient=np.random.uniform(1e-4, 4e-3),
             military_demand_coefficient=np.random.uniform(1, 10),
             military_attrition_coefficient=np.random.uniform(1e-6, 5e-4),
-            industrial_attrition_coefficient=np.random.uniform(8e-8, 8e-7),
+            industrial_attrition_coefficient=np.random.uniform(8e-8, 1e-6),
             spending_scaling_coefficient=np.random.uniform(1e-1, 1e0),
             conflict_intensity=2.5,
             epsilon=1e-10,
@@ -56,4 +56,4 @@ def run_monte_carlo_simulation(num_simulations: int, plot_line: bool = False):
         plot_monte_carlo_line([russia_results, ukraine_results], "GDP (Billions, PPP$)", max(lengths))
 
 if __name__ == "__main__":
-    run_monte_carlo_simulation(1000)
+    run_monte_carlo_simulation(25000)
