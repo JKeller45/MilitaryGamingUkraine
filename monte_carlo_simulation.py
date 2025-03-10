@@ -27,7 +27,7 @@ def individual_simulation(timesteps: int):
     return run_simulation(timesteps, global_sampled_coefficients, monte_carlo=True)
 
 def run_monte_carlo_simulation(num_simulations: int, plot_line: bool = False):
-    timesteps = 3600
+    timesteps = 3650
     winners = []
     reasons = []
     lengths = []
