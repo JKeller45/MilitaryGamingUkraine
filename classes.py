@@ -18,8 +18,8 @@ class Belligerant:
         civilian_industrial_investment_percentage: float,
         tax_revenue_percentage: float,
         attacking_intensity: float,
-        sanctions_policy: Callable[[int], float],
-        foreign_aid_policy: Callable[[int], float],
+        sanctions_policy,
+        foreign_aid_policy,
     ) -> None:
         self.name: str = name
         self.coefficients: Coefficients = coefficients
@@ -38,8 +38,8 @@ class Belligerant:
         self.military_industrial_investment_percentage: float = military_industrial_investment_percentage
         self.civilian_industrial_investment_percentage: float = civilian_industrial_investment_percentage
         self.tax_revenue_percentage: float = tax_revenue_percentage
-        self.sanctions_policy: Callable[[int], float] = sanctions_policy
-        self.foreign_aid_policy: Callable[[int], float] = foreign_aid_policy
+        self.sanctions_policy = sanctions_policy
+        self.foreign_aid_policy = foreign_aid_policy
         self.attacking_intensity: float = attacking_intensity
 
         self.current_budget: float = 0.0
@@ -117,10 +117,10 @@ class Belligerant:
         )
     
     def sanctions_effect(self, t: int) -> float:
-        return 1 - self.sanctions_policy(int(t - self.coefficients.sanctions_delay))
+        return 1 - self.sanctions_function(t - self.coefficients.sanctions_delay, self.sanctions_policy)
     
     def foreign_aid(self, t: int) -> float:
-        return self.foreign_aid_policy(int(t - self.coefficients.foreign_aid_delay))
+        return self.foreign_aid_function(t - self.coefficients.foreign_aid_delay, self.foreign_aid_policy)
     
     def industrial_technology_growth(self) -> float:
         return (
@@ -190,6 +190,12 @@ class Belligerant:
                 self.military_industrial_capacity
             )
         )
+    
+    def sanctions_function(self, t: int, max_sanctions: float) -> float:
+        return max(0, min(max_sanctions, .001 + ((max_sanctions - .001) * t / 180)))
+
+    def foreign_aid_function(self, t: int, max_foreign_aid: float) -> float:
+        return max_foreign_aid
 
 @dataclass(slots=True)
 class Coefficients:

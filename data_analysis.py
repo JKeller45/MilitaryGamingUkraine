@@ -42,7 +42,7 @@ def history_to_dict(belligerant: Belligerant, max_length=0, monte_carlo=False) -
 def process_belligerent(belligerant, max_length):
     return pl.DataFrame(history_to_dict(belligerant, max_length, monte_carlo=True), strict=False)
 
-def monte_carlo_to_dict(belligerant_runs: list[list[Belligerant]], max_length: int):
+def monte_carlo_to_df(belligerant_runs: list[list[Belligerant]], max_length: int):
     combined_data = []
     for belligerants in belligerant_runs:
         with Pool(processes=12) as pool:
@@ -75,7 +75,7 @@ def plot_dashboard(belligerants: list[Belligerant]):
     plt.show()
 
 def plot_monte_carlo_line(belligerants: list[list[Belligerant]], variable: str, max_length: int):
-    df = monte_carlo_to_dict(belligerants, max_length)
+    df = monte_carlo_to_df(belligerants, max_length)
 
     mean_line = alt.Chart(df).mark_line().encode(
         x='Time',

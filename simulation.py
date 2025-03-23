@@ -4,24 +4,13 @@ from typing import Tuple, List
 from classes import Belligerant, Coefficients
 import data_analysis as da
 
-def sanctions_policy_russia(t: int) -> float:
-    return .14 * max(min(t / 4, 90),0) / 90 + .01
-
-def sanctions_policy_ukraine(t: int) -> float:
-    return 0.0
-
-def foreign_aid_policy_russia(t: int) -> float:
-    return 0.0
-
-def foreign_aid_policy_ukraine(t: int) -> float:
-    return .16
-
 def conflict_intensity(t: int) -> float:
     return 1 if t > 360 else -1.5 * t / 360 + 2.5
 
-def create_belligerants(coefficients: Coefficients, monte_carlo=False) -> Tuple[Belligerant, Belligerant]:
+def create_belligerants(coefficients: Coefficients, international_interference: dict, investment_policies: dict, monte_carlo=False) -> Tuple[Belligerant, Belligerant]:
     russian_federation: Belligerant
     ukraine: Belligerant
+
     if not monte_carlo:
         russian_federation = Belligerant(
             name="Russian Federation",
@@ -31,14 +20,14 @@ def create_belligerants(coefficients: Coefficients, monte_carlo=False) -> Tuple[
             military_industrial_capacity=100,
             civilian_industrial_capacity=760,
             military_capability=175,
-            military_technology_investment_percentage=0.25,
-            industrial_technology_investment_percentage=0.25,
-            military_industrial_investment_percentage=0.25,
-            civilian_industrial_investment_percentage=0.25,
+            military_technology_investment_percentage=investment_policies.get('russia')[0],
+            industrial_technology_investment_percentage=investment_policies.get('russia')[1],
+            military_industrial_investment_percentage=investment_policies.get('russia')[2],
+            civilian_industrial_investment_percentage=investment_policies.get('russia')[3],
             attacking_intensity=.6,
             tax_revenue_percentage=0.11,
-            sanctions_policy=sanctions_policy_russia,
-            foreign_aid_policy=foreign_aid_policy_russia,
+            sanctions_policy=international_interference.get('sanctions_russia'),
+            foreign_aid_policy=international_interference.get('foreign_aid_russia'),
         )
 
         ukraine = Belligerant(
@@ -49,14 +38,14 @@ def create_belligerants(coefficients: Coefficients, monte_carlo=False) -> Tuple[
             military_industrial_capacity=100,
             civilian_industrial_capacity=100,
             military_capability=100,
-            military_technology_investment_percentage=0.25,
-            industrial_technology_investment_percentage=0.25,
-            military_industrial_investment_percentage=0.25,
-            civilian_industrial_investment_percentage=0.25,
+            military_technology_investment_percentage=investment_policies.get('ukraine')[0],
+            industrial_technology_investment_percentage=investment_policies.get('ukraine')[1],
+            military_industrial_investment_percentage=investment_policies.get('ukraine')[2],
+            civilian_industrial_investment_percentage=investment_policies.get('ukraine')[3],
             attacking_intensity=.4,
             tax_revenue_percentage=0.19,
-            sanctions_policy=sanctions_policy_ukraine,
-            foreign_aid_policy=foreign_aid_policy_ukraine,
+            sanctions_policy=international_interference.get('sanctions_ukraine'),
+            foreign_aid_policy=international_interference.get('foreign_aid_ukraine'),
         )
     else:
         russia_attacking_intensity = np.random.normal(.62,.02)
@@ -68,14 +57,14 @@ def create_belligerants(coefficients: Coefficients, monte_carlo=False) -> Tuple[
             military_industrial_capacity=100,
             civilian_industrial_capacity=850,
             military_capability=175,
-            military_technology_investment_percentage=0.25,
-            industrial_technology_investment_percentage=0.25,
-            military_industrial_investment_percentage=0.25,
-            civilian_industrial_investment_percentage=0.25,
+            military_technology_investment_percentage=investment_policies.get('russia')[0],
+            industrial_technology_investment_percentage=investment_policies.get('russia')[1],
+            military_industrial_investment_percentage=investment_policies.get('russia')[2],
+            civilian_industrial_investment_percentage=investment_policies.get('russia')[3],
             attacking_intensity=russia_attacking_intensity,
             tax_revenue_percentage=np.random.normal(0.11, 0.01),
-            sanctions_policy=sanctions_policy_russia,
-            foreign_aid_policy=foreign_aid_policy_russia,
+            sanctions_policy=international_interference.get('sanctions_russia'),
+            foreign_aid_policy=international_interference.get('foreign_aid_russia'),
         )
 
         ukraine = Belligerant(
@@ -86,14 +75,14 @@ def create_belligerants(coefficients: Coefficients, monte_carlo=False) -> Tuple[
             military_industrial_capacity=100,
             civilian_industrial_capacity=100,
             military_capability=100,
-            military_technology_investment_percentage=0.25,
-            industrial_technology_investment_percentage=0.25,
-            military_industrial_investment_percentage=0.25,
-            civilian_industrial_investment_percentage=0.25,
+            military_technology_investment_percentage=investment_policies.get('ukraine')[0],
+            industrial_technology_investment_percentage=investment_policies.get('ukraine')[1],
+            military_industrial_investment_percentage=investment_policies.get('ukraine')[2],
+            civilian_industrial_investment_percentage=investment_policies.get('ukraine')[3],
             attacking_intensity=1-russia_attacking_intensity,
             tax_revenue_percentage=np.random.normal(0.19, 0.01),
-            sanctions_policy=sanctions_policy_ukraine,
-            foreign_aid_policy=foreign_aid_policy_ukraine,
+            sanctions_policy=international_interference.get('sanctions_ukraine'),
+            foreign_aid_policy=international_interference.get('foreign_aid_ukraine'),
         )
 
     return russian_federation, ukraine
@@ -136,8 +125,20 @@ def print_endgame_stats(belligerants: List[Belligerant]) -> None:
     for belligerant in belligerants:
         print(f"{belligerant.name} has {belligerant.economic_capital} economic capital, {belligerant.military_capability} military capability, and {belligerant.civilian_industrial_capacity} civilian industrial capacity.")
 
-def run_simulation(timesteps: int, coefficients: Coefficients, monte_carlo=False) -> Tuple[Belligerant, Belligerant, int, str, str]:
-    russian_federation, ukraine = create_belligerants(coefficients, monte_carlo)
+def run_simulation(timesteps: int, coefficients: Coefficients, international_interference, investment_policies, monte_carlo=False) -> Tuple[Belligerant, Belligerant, int, str, str]:
+    if not international_interference:
+        international_interference: dict[str, float] = {}
+        international_interference['foreign_aid_russia'] = 0
+        international_interference['sanctions_ukraine'] = 0
+        international_interference['foreign_aid_ukraine'] = .16
+        international_interference['sanctions_russia'] = .15
+
+    if not investment_policies:
+        investment_policies: dict[str, list] = {}
+        investment_policies['ukraine'] = [.25, .25, .25, .25]
+        investment_policies['russia'] = [.25, .25, .25, .25]
+
+    russian_federation, ukraine = create_belligerants(coefficients, international_interference, investment_policies, monte_carlo)
     baseline_russian_attacking_intensity = np.random.normal(.62,.02)
     for t in range(timesteps):
         coefficients.conflict_intensity = conflict_intensity(t)

@@ -1,10 +1,11 @@
 from simulation import run_simulation
 from classes import Coefficients
 import numpy as np
-from data_analysis import plot_monte_carlo_histograms, plot_monte_carlo_line
+from data_analysis import plot_monte_carlo_histograms, plot_monte_carlo_line, monte_carlo_to_df
 from multiprocessing import Pool
 
-def individual_simulation(timesteps: int):
+def individual_simulation(args: tuple[int, dict[str, float], dict[str, list]]):
+    timesteps, international_interference, investment_policies = args
     global_sampled_coefficients: Coefficients = Coefficients(
             production_efficiency=8,
             military_capability_weight=np.random.uniform(5e-5, 1e-3),
@@ -24,9 +25,9 @@ def individual_simulation(timesteps: int):
             epsilon=1e-10,
         )
         
-    return run_simulation(timesteps, global_sampled_coefficients, monte_carlo=True)
+    return run_simulation(timesteps, global_sampled_coefficients, international_interference, investment_policies, monte_carlo=True)
 
-def run_monte_carlo_simulation(num_simulations: int, plot_line: bool = False):
+def run_monte_carlo_simulation(num_simulations: int, international_interference: dict[str, float] = None, investment_policies: dict[str, list] = None, plot_line: bool = False, plot_histograms: bool = False, export: bool = False):
     timesteps = 3600
     winners = []
     reasons = []
@@ -35,7 +36,7 @@ def run_monte_carlo_simulation(num_simulations: int, plot_line: bool = False):
     ukraine_results = []
 
     with Pool(processes=12) as pool:
-        results = pool.imap(individual_simulation, [timesteps] * num_simulations)
+        results = pool.imap(individual_simulation, [(timesteps, international_interference, investment_policies)] * num_simulations)
         
         for result in results:
             russia, ukraine, length, winner, reason = result
@@ -45,14 +46,29 @@ def run_monte_carlo_simulation(num_simulations: int, plot_line: bool = False):
             reasons.append(reason)
             lengths.append(length)
 
+    print("-----------------")
     print(f"Ran {num_simulations} Simulations")
-    print(f"Average length of conflict: {np.mean(lengths)}")
+    print(f"Average length of conflict: {np.mean(lengths) / 365.0} years")
+    print(f"Standard deviation of conflict length: {np.std(lengths) / 365.0} years")
     print(f"Most wins: {max(set(winners), key=winners.count)}")
     print(f"Number of inconclusive simulations: {winners.count('None')}")
 
-    plot_monte_carlo_histograms(lengths, winners, reasons)
+    if export:
+        df = monte_carlo_to_df([russia_results, ukraine_results], max(lengths))
+        df.write_parquet(f"data/ukraine_{investment_policies.get('ukraine')}_russia_{investment_policies.get('russia')}_aid_{international_interference.get('foreign_aid_ukraine')}_sanctions_{international_interference.get('sanctions_russia')}.parquet", 
+                         compression="brotli", 
+                         compression_level=8, 
+                         row_group_size=600_000, 
+                         data_page_size=300_000)
+        del df
+
+    if plot_histograms:
+        plot_monte_carlo_histograms(lengths, winners, reasons)
     if plot_line:
         plot_monte_carlo_line([russia_results, ukraine_results], "GDP (Billions, PPP$)", max(lengths))
 
+    del winners, reasons, lengths, russia_results, ukraine_results
+        
+
 if __name__ == "__main__":
-    run_monte_carlo_simulation(25000)
+    run_monte_carlo_simulation(10000, plot_histograms=True, export=True)
