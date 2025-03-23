@@ -130,8 +130,8 @@ def run_simulation(timesteps: int, coefficients: Coefficients, international_int
         international_interference: dict[str, float] = {}
         international_interference['foreign_aid_russia'] = 0
         international_interference['sanctions_ukraine'] = 0
-        international_interference['foreign_aid_ukraine'] = .16
-        international_interference['sanctions_russia'] = .15
+        international_interference['foreign_aid_ukraine'] = .24
+        international_interference['sanctions_russia'] = .14
 
     if not investment_policies:
         investment_policies: dict[str, list] = {}

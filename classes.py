@@ -1,6 +1,4 @@
 from dataclasses import dataclass, fields
-from typing import List, Callable
-import numpy as np
 
 class Belligerant:
     def __init__(
@@ -224,13 +222,13 @@ class Coefficients:
 
 @dataclass(slots=True)
 class History:
-    time: List[float]
-    economic_capital: List[float]
-    industrial_technology: List[float]
-    military_technology: List[float]
-    civilian_industrial_capacity: List[float]
-    military_industrial_capacity: List[float]
-    military_capability: List[float]
-    price_level: List[float]
-    budget: List[float]
-    spending: List[float]
+    time: list[float]
+    economic_capital: list[float]
+    industrial_technology: list[float]
+    military_technology: list[float]
+    civilian_industrial_capacity: list[float]
+    military_industrial_capacity: list[float]
+    military_capability: list[float]
+    price_level: list[float]
+    budget: list[float]
+    spending: list[float]

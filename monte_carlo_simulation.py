@@ -35,6 +35,18 @@ def run_monte_carlo_simulation(num_simulations: int, international_interference:
     russia_results = []
     ukraine_results = []
 
+    if not international_interference:
+        international_interference: dict[str, float] = {}
+        international_interference['foreign_aid_russia'] = 0
+        international_interference['sanctions_ukraine'] = 0
+        international_interference['foreign_aid_ukraine'] = .24
+        international_interference['sanctions_russia'] = .14
+
+    if not investment_policies:
+        investment_policies: dict[str, list] = {}
+        investment_policies['ukraine'] = [.25, .25, .25, .25]
+        investment_policies['russia'] = [.25, .25, .25, .25]
+
     with Pool(processes=12) as pool:
         results = pool.imap(individual_simulation, [(timesteps, international_interference, investment_policies)] * num_simulations)
         
