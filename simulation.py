@@ -5,7 +5,7 @@ from classes import Belligerant, Coefficients
 import data_analysis as da
 
 def conflict_intensity(t: int) -> float:
-    return 1 if t > 360 else -1.5 * t / 360 + 2.5
+    return 1 if t > 365 else -1.5 * t / 365 + 2.5
 
 def create_belligerants(coefficients: Coefficients, international_interference: dict, investment_policies: dict, monte_carlo=False) -> Tuple[Belligerant, Belligerant]:
     russian_federation: Belligerant
@@ -181,6 +181,6 @@ if __name__ == "__main__":
         epsilon=1e-10,
     )
 
-    timesteps: int = 3600
+    timesteps: int = 3650
     russian_federation, ukraine, t, winner, reason = run_simulation(timesteps, global_coefficients, monte_carlo=False)
     da.plot_dashboard([russian_federation, ukraine])

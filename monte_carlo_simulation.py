@@ -28,7 +28,7 @@ def individual_simulation(args: tuple[int, dict[str, float], dict[str, list]]):
     return run_simulation(timesteps, global_sampled_coefficients, international_interference, investment_policies, monte_carlo=True)
 
 def run_monte_carlo_simulation(num_simulations: int, international_interference: dict[str, float] = None, investment_policies: dict[str, list] = None, plot_line: bool = False, plot_histograms: bool = False, export: bool = False):
-    timesteps = 3600
+    timesteps = 3650
     winners = []
     reasons = []
     lengths = []
