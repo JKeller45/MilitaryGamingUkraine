@@ -1,8 +1,9 @@
 from simulation import run_simulation
 from classes import Coefficients
 import numpy as np
-from data_analysis import plot_monte_carlo_histograms, plot_monte_carlo_line, monte_carlo_to_df
+from data_analysis import plot_monte_carlo_histograms, plot_monte_carlo_line, combine_simulation_results, calc_confidence_interval_time_series
 from multiprocessing import Pool
+from json import dumps
 
 def individual_simulation(args: tuple[int, dict[str, float], dict[str, list]]):
     timesteps, international_interference, investment_policies = args
@@ -65,8 +66,27 @@ def run_monte_carlo_simulation(num_simulations: int, international_interference:
     print(f"Most wins: {max(set(winners), key=winners.count)}")
     print(f"Number of inconclusive simulations: {winners.count('None')}")
 
-    # if export:
-        
+    if export:
+        results_dict = {
+            "winners": winners,
+            "lengths": lengths,
+            "reasons": reasons,
+        }
+        for name, x in [("russia", russia_results), ("ukraine", ukraine_results)]:
+            gdp, military_capability, civilian_industrial_capacity, military_industrial_capacity, military_technology, industrial_technology, price_level, budget, spending = combine_simulation_results(x, max(lengths))
+            results_dict[f"{name}_gdp"] = list(calc_confidence_interval_time_series(gdp))
+            results_dict[f"{name}_military_capability"] = list(calc_confidence_interval_time_series(military_capability))
+            results_dict[f"{name}_civilian_industrial_capacity"] = list(calc_confidence_interval_time_series(civilian_industrial_capacity))
+            results_dict[f"{name}_military_industrial_capacity"] = list(calc_confidence_interval_time_series(military_industrial_capacity))
+            results_dict[f"{name}_military_technology"] = list(calc_confidence_interval_time_series(military_technology))
+            results_dict[f"{name}_industrial_technology"] = list(calc_confidence_interval_time_series(industrial_technology))
+            results_dict[f"{name}_price_level"] = list(calc_confidence_interval_time_series(price_level))
+            results_dict[f"{name}_budget"] = list(calc_confidence_interval_time_series(budget))
+            results_dict[f"{name}_spending"] = list(calc_confidence_interval_time_series(spending))
+
+        with open(f"data/ukraine_{investment_policies.get('ukraine')}_russia_{investment_policies.get('russia')}_aid_{international_interference.get('foreign_aid_ukraine')}_sanctions_{international_interference.get('sanctions_russia')}.json", "w") as file:
+            file.write(dumps(results_dict, indent=4))
+        del results_dict
 
     if plot_histograms:
         plot_monte_carlo_histograms(lengths, winners, reasons)
@@ -77,4 +97,4 @@ def run_monte_carlo_simulation(num_simulations: int, international_interference:
         
 
 if __name__ == "__main__":
-    run_monte_carlo_simulation(10000, plot_histograms=True, export=True)
+    run_monte_carlo_simulation(10000, plot_histograms=False, export=True)
