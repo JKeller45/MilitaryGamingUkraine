@@ -6,7 +6,6 @@ from multiprocessing import Pool
 import altair as alt
 import pandas as pd
 import numpy as np
-from numba import njit
 
 def history_to_dict(belligerant: Belligerant, max_length=0, monte_carlo=False) -> dict[str, list]:
     data: dict = {}
@@ -76,6 +75,60 @@ def plot_dashboard(belligerants: list[Belligerant]):
     plt.tight_layout()
     plt.show()
 
+def plot_dashboard_from_csv(data: dict):
+    sns.set_theme(style="darkgrid")
+    fig, axs = plt.subplots(3, 3, figsize=(14, 10))
+    time = [i / 365.0 for i in range(len(data['ukraine_gdp']))]
+
+    sns.lineplot(x=time, y=data['ukraine_gdp'], ax=axs[0, 0])
+    sns.lineplot(x=time, y=data['russia_gdp'], ax=axs[0, 0])
+    axs[0, 0].fill_between(x=time, y1=data['ukraine_gdp_lower'], y2=data['ukraine_gdp_upper'], alpha=0.3)
+    axs[0, 0].fill_between(x=time, y1=data['russia_gdp_lower'], y2=data['russia_gdp_upper'], alpha=0.3)
+
+    sns.lineplot(x=time, y=data['ukraine_military_capability'], ax=axs[0, 1])
+    sns.lineplot(x=time, y=data['russia_military_capability'], ax=axs[0, 1])
+    axs[0, 1].fill_between(x=time, y1=data['ukraine_military_capability_lower'], y2=data['ukraine_military_capability_upper'], alpha=0.3)
+    axs[0, 1].fill_between(x=time, y1=data['russia_military_capability_lower'], y2=data['russia_military_capability_upper'], alpha=0.3)
+
+    sns.lineplot(x=time, y=data['ukraine_price_level'], ax=axs[0, 2])
+    sns.lineplot(x=time, y=data['russia_price_level'], ax=axs[0, 2])
+    axs[0, 2].fill_between(x=time, y1=data['ukraine_price_level_lower'], y2=data['ukraine_price_level_upper'], alpha=0.3)
+    axs[0, 2].fill_between(x=time, y1=data['russia_price_level_lower'], y2=data['russia_price_level_upper'], alpha=0.3)
+
+    sns.lineplot(x=time, y=data['ukraine_civilian_industrial_capacity'], ax=axs[1, 0])
+    sns.lineplot(x=time, y=data['russia_civilian_industrial_capacity'], ax=axs[1, 0])
+    axs[1, 0].fill_between(x=time, y1=data['ukraine_civilian_industrial_capacity_lower'], y2=data['ukraine_civilian_industrial_capacity_upper'], alpha=0.3)
+    axs[1, 0].fill_between(x=time, y1=data['russia_civilian_industrial_capacity_lower'], y2=data['russia_civilian_industrial_capacity_upper'], alpha=0.3)
+
+    sns.lineplot(x=time, y=data['ukraine_military_industrial_capacity'], ax=axs[1, 1])
+    sns.lineplot(x=time, y=data['russia_military_industrial_capacity'], ax=axs[1, 1])
+    axs[1, 1].fill_between(x=time, y1=data['ukraine_military_industrial_capacity_lower'], y2=data['ukraine_military_industrial_capacity_upper'], alpha=0.3)
+    axs[1, 1].fill_between(x=time, y1=data['russia_military_industrial_capacity_lower'], y2=data['russia_military_industrial_capacity_upper'], alpha=0.3)
+
+    sns.lineplot(x=time, y=data['ukraine_budget'], ax=axs[1, 2])
+    sns.lineplot(x=time, y=data['russia_budget'], ax=axs[1, 2])
+    axs[1, 2].fill_between(x=time, y1=data['ukraine_budget_lower'], y2=data['ukraine_budget_upper'], alpha=0.3)
+    axs[1, 2].fill_between(x=time, y1=data['russia_budget_lower'], y2=data['russia_budget_upper'], alpha=0.3)
+
+    sns.lineplot(x=time, y=data['ukraine_military_technology'], ax=axs[2, 0])
+    sns.lineplot(x=time, y=data['russia_military_technology'], ax=axs[2, 0])
+    axs[2, 0].fill_between(x=time, y1=data['ukraine_military_technology_lower'], y2=data['ukraine_military_technology_upper'], alpha=0.3)
+    axs[2, 0].fill_between(x=time, y1=data['russia_military_technology_lower'], y2=data['russia_military_technology_upper'], alpha=0.3)
+
+    sns.lineplot(x=time, y=data['ukraine_industrial_technology'], ax=axs[2, 1])
+    sns.lineplot(x=time, y=data['russia_industrial_technology'], ax=axs[2, 1])
+    axs[2, 1].fill_between(x=time, y1=data['ukraine_industrial_technology_lower'], y2=data['ukraine_industrial_technology_upper'], alpha=0.3)
+    axs[2, 1].fill_between(x=time, y1=data['russia_industrial_technology_lower'], y2=data['russia_industrial_technology_upper'], alpha=0.3)
+
+    sns.lineplot(x=time, y=data['ukraine_spending'], ax=axs[2, 2])
+    sns.lineplot(x=time, y=data['russia_spending'], ax=axs[2, 2])
+    axs[2, 2].fill_between(x=time, y1=data['ukraine_spending_lower'], y2=data['ukraine_spending_upper'], alpha=0.3)
+    axs[2, 2].fill_between(x=time, y1=data['russia_spending_lower'], y2=data['russia_spending_upper'], alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()
+
+
 def plot_monte_carlo_line(belligerants: list[list[Belligerant]], variable: str, max_length: int):
     df = monte_carlo_to_df(belligerants, max_length)
 
@@ -133,23 +186,48 @@ def plot_monte_carlo_histograms(lengths: list, winners: list, reasons: list):
     plt.show()
 
 def calc_confidence_interval_time_series(data: np.ndarray, z_score=1.96):
-    # data shape: (n_series, n_samples)
     means = np.mean(data, axis=1)
     std_errs = np.std(data, axis=1, ddof=1) / np.sqrt(data.shape[1])
     intervals = std_errs * z_score
     lower_bounds = means - intervals
     upper_bounds = means + intervals
-    return np.column_stack((means, lower_bounds, upper_bounds))
+    return means, lower_bounds, upper_bounds
 
-def combine_simulation_results(data: list[Belligerant], max_length: int):
-    gdp = np.stack([(b.history.economic_capital + [b.history.economic_capital[-1]] * (max_length - len(b.history.economic_capital)))[:max_length] for b in data], axis=1)
-    military_capability = np.stack([(b.history.military_capability + [b.history.military_capability[-1]] * (max_length - len(b.history.military_capability)))[:max_length] for b in data], axis=1)
-    civilian_industrial_capacity = np.stack([(b.history.civilian_industrial_capacity + [b.history.civilian_industrial_capacity[-1]] * (max_length - len(b.history.civilian_industrial_capacity)))[:max_length] for b in data], axis=1)
-    military_industrial_capacity = np.stack([(b.history.military_industrial_capacity + [b.history.military_industrial_capacity[-1]] * (max_length - len(b.history.military_industrial_capacity)))[:max_length] for b in data], axis=1)
-    military_technology = np.stack([(b.history.military_technology + [b.history.military_technology[-1]] * (max_length - len(b.history.military_technology)))[:max_length] for b in data], axis=1)
-    industrial_technology = np.stack([(b.history.industrial_technology + [b.history.industrial_technology[-1]] * (max_length - len(b.history.industrial_technology)))[:max_length] for b in data], axis=1)
-    price_level = np.stack([(b.history.price_level + [b.history.price_level[-1]] * (max_length - len(b.history.price_level)))[:max_length] for b in data], axis=1)
-    budget = np.stack([(b.history.budget + [b.history.budget[-1]] * (max_length - len(b.history.budget)))[:max_length] for b in data], axis=1)
-    spending = np.stack([(b.history.spending + [b.history.spending[-1]] * (max_length - len(b.history.spending)))[:max_length] for b in data], axis=1)
+def calc_extend_means(data, max_length):
+    values_at_index = [[] for _ in range(max_length)]
+
+    for lst in data:
+        for i, val in enumerate(lst):
+            values_at_index[i].append(val)
+    means = np.array([np.mean(vals) for vals in values_at_index])
+
+    padded_data = []
+    for lst in data:
+        padded = lst + means[len(lst):].tolist()
+        padded_data.append(padded)
+        
+    return padded_data
+
+def combine_simulation_results(data: list[Belligerant], max_length: int, interpolate_means=False):
+    if interpolate_means:
+        gdp = np.stack(calc_extend_means([b.history.economic_capital for b in data], max_length), axis=1)
+        military_capability = np.stack(calc_extend_means([b.history.military_capability for b in data], max_length), axis=1)
+        civilian_industrial_capacity = np.stack(calc_extend_means([b.history.civilian_industrial_capacity for b in data], max_length), axis=1)
+        military_industrial_capacity = np.stack(calc_extend_means([b.history.military_industrial_capacity for b in data], max_length), axis=1)
+        military_technology = np.stack(calc_extend_means([b.history.military_technology for b in data], max_length), axis=1)
+        industrial_technology = np.stack(calc_extend_means([b.history.industrial_technology for b in data], max_length), axis=1)
+        price_level = np.stack(calc_extend_means([b.history.price_level for b in data], max_length), axis=1)
+        budget = np.stack(calc_extend_means([b.history.budget for b in data], max_length), axis=1)
+        spending = np.stack(calc_extend_means([b.history.spending for b in data], max_length), axis=1)
+    else:
+        gdp = np.stack([(b.history.economic_capital + [b.history.economic_capital[-1]] * (max_length - len(b.history.economic_capital)))[:max_length] for b in data], axis=1)
+        military_capability = np.stack([(b.history.military_capability + [b.history.military_capability[-1]] * (max_length - len(b.history.military_capability)))[:max_length] for b in data], axis=1)
+        civilian_industrial_capacity = np.stack([(b.history.civilian_industrial_capacity + [b.history.civilian_industrial_capacity[-1]] * (max_length - len(b.history.civilian_industrial_capacity)))[:max_length] for b in data], axis=1)
+        military_industrial_capacity = np.stack([(b.history.military_industrial_capacity + [b.history.military_industrial_capacity[-1]] * (max_length - len(b.history.military_industrial_capacity)))[:max_length] for b in data], axis=1)
+        military_technology = np.stack([(b.history.military_technology + [b.history.military_technology[-1]] * (max_length - len(b.history.military_technology)))[:max_length] for b in data], axis=1)
+        industrial_technology = np.stack([(b.history.industrial_technology + [b.history.industrial_technology[-1]] * (max_length - len(b.history.industrial_technology)))[:max_length] for b in data], axis=1)
+        price_level = np.stack([(b.history.price_level + [b.history.price_level[-1]] * (max_length - len(b.history.price_level)))[:max_length] for b in data], axis=1)
+        budget = np.stack([(b.history.budget + [b.history.budget[-1]] * (max_length - len(b.history.budget)))[:max_length] for b in data], axis=1)
+        spending = np.stack([(b.history.spending + [b.history.spending[-1]] * (max_length - len(b.history.spending)))[:max_length] for b in data], axis=1)
 
     return gdp, military_capability, civilian_industrial_capacity, military_industrial_capacity, military_technology, industrial_technology, price_level, budget, spending

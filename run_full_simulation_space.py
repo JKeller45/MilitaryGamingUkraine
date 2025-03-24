@@ -1,6 +1,5 @@
 from monte_carlo_simulation import run_monte_carlo_simulation
 import gc
-from time import sleep
 
 def run_full_simulation_space(num_simulations: int):
     international_interference_scenarios: list = []
@@ -29,7 +28,6 @@ def run_full_simulation_space(num_simulations: int):
         for interference in international_interference_scenarios:
             run_monte_carlo_simulation(num_simulations, interference, investment, export=True)
             gc.collect()
-            sleep(3)
 
 if __name__ == "__main__":
-    run_full_simulation_space(10000)
+    run_full_simulation_space(12000)
