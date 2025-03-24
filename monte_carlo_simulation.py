@@ -65,14 +65,8 @@ def run_monte_carlo_simulation(num_simulations: int, international_interference:
     print(f"Most wins: {max(set(winners), key=winners.count)}")
     print(f"Number of inconclusive simulations: {winners.count('None')}")
 
-    if export:
-        df = monte_carlo_to_df([russia_results, ukraine_results], max(lengths))
-        df.write_parquet(f"data/ukraine_{investment_policies.get('ukraine')}_russia_{investment_policies.get('russia')}_aid_{international_interference.get('foreign_aid_ukraine')}_sanctions_{international_interference.get('sanctions_russia')}.parquet", 
-                         compression="brotli", 
-                         compression_level=8, 
-                         row_group_size=600_000, 
-                         data_page_size=300_000)
-        del df
+    # if export:
+        
 
     if plot_histograms:
         plot_monte_carlo_histograms(lengths, winners, reasons)

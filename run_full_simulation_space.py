@@ -1,6 +1,6 @@
 from monte_carlo_simulation import run_monte_carlo_simulation
-from time import sleep
 import gc
+from time import sleep
 
 def run_full_simulation_space(num_simulations: int):
     international_interference_scenarios: list = []

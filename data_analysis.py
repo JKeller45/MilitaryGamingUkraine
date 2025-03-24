@@ -5,6 +5,8 @@ import polars as pl
 from multiprocessing import Pool
 import altair as alt
 import pandas as pd
+import scipy.stats as st
+import numpy as np
 
 def history_to_dict(belligerant: Belligerant, max_length=0, monte_carlo=False) -> dict[str, list]:
     data: dict = {}
@@ -129,3 +131,24 @@ def plot_monte_carlo_histograms(lengths: list, winners: list, reasons: list):
 
     plt.tight_layout()
     plt.show()
+
+def calc_95_confidence_interval(data: list):
+    mean = np.mean(data)
+    std_err = st.sem(data)
+    interval = std_err * st.t.ppf((1 + 0.95) / 2, len(data) - 1)
+    lower_bound = mean - interval
+    upper_bound = mean + interval
+    return lower_bound, upper_bound
+
+def combine_simulation_results(data: list[Belligerant]):
+    gdp = np.stack([b.history.economic_capital for b in data], axis=1)
+    military_capability = np.stack([b.history.military_capability for b in data], axis=1)
+    civilian_industrial_capacity = np.stack([b.history.civilian_industrial_capacity for b in data], axis=1)
+    military_industrial_capacity = np.stack([b.history.military_industrial_capacity for b in data], axis=1)
+    military_technology = np.stack([b.history.military_technology for b in data], axis=1)
+    industrial_technology = np.stack([b.history.industrial_technology for b in data], axis=1)
+    price_level = np.stack([b.history.price_level for b in data], axis=1)
+    budget = np.stack([b.history.budget for b in data], axis=1)
+    spending = np.stack([b.history.spending for b in data], axis=1)
+
+    return gdp, military_capability, civilian_industrial_capacity, military_industrial_capacity, military_technology, industrial_technology, price_level, budget, spending
