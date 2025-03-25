@@ -172,3 +172,5 @@ cython_debug/
 
 data_viz.ipynb
 /data
+data.zip
+*.exe
