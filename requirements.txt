@@ -1,0 +1,6 @@
+numpy
+polars
+seaborn
+matplotlib
+pandas
+altair
